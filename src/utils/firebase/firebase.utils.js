@@ -2,8 +2,9 @@ import { initializeApp } from 'firebase/app';
 import { 
     getAuth,
     signInWithPopup,
-    GoogleAuthProvider, 
-    signInWithRedirect
+    GoogleAuthProvider,
+    createUserWithEmailAndPassword,
+    // signInWithRedirect
 } from 'firebase/auth';
 
 import {
@@ -20,23 +21,28 @@ const firebaseConfig = {
     storageBucket: "crwn-clothing-db-8a88b.appspot.com",
     messagingSenderId: "966430312240",
     appId: "1:966430312240:web:8b1e5fdfb33f60d0af2af5"
-  };
+};
   
   // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-  const provider = new GoogleAuthProvider();
+const googleProvider = new GoogleAuthProvider();
 
-  provider.setCustomParameters({
+googleProvider.setCustomParameters({
     prompt: 'select_account',
-  });
+});
 
-  export const auth = getAuth();
-  export const signInWithGooglePopup = () => signInWithPopup(auth, provider);
+export const auth = getAuth();
+export const signInWithGooglePopup = () => signInWithPopup(auth, googleProvider);
+//   export const signInWithGoogleRedirect = () => signInWithRedirect(auth, googleProvider);
 
-  export const db = getFirestore();
+export const db = getFirestore();
 
-  export const createUserDocumentFromAuth = async (userAuth) => {
+export const createUserDocumentFromAuth = async (
+        userAuth,
+        additionalInformation = {}
+) => {
+    if (!userAuth) return;
     const userDocRef = doc(db, 'users', userAuth.uid); 
 
     console.log(userDocRef);
@@ -53,7 +59,8 @@ const firebaseConfig = {
             await setDoc(userDocRef, {
                displayName,
                email,
-               createdAt 
+               createdAt,
+               ...additionalInformation,
             });
         } catch (error) {
             console.log('error creating the user', error.message);
@@ -68,4 +75,10 @@ const firebaseConfig = {
     // if user data exists
 
 
-  }
+};
+
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
+    if (!email || !password) return;
+    
+    return await createUserWithEmailAndPassword(auth, email, password);
+}
